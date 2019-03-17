@@ -53,7 +53,7 @@ server<-function(input,output){
           #Downloadable csv of selected dataset
           output$downloadData <- downloadHandler(
             filename = function() {
-              paste("RI_", input$riInput, "_", input$YInput, ".csv", sep = "")
+              paste("RI_",input$riInput, "_", input$YInput, ".csv", sep = "")
             },
             content = function(file) {
               write.csv(datasetInput(), file, row.names = FALSE)

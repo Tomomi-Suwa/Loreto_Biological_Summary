@@ -3,13 +3,19 @@ library(dplyr)
 library(ggplot2)
 
 #Prep the data (Run this section before running UI and Server section----
+df<-read.csv("data/LoretoPaperBioSummary.csv")
 
 #UI----
 ui<-fluidPage(
-  titlePanel("NLP data by Country"),
+  titlePanel("Loreto Biological Inventories"),
   sidebarLayout(
     sidebarPanel(
-        selectInput("country", "Select a Country", choices = unique(nlp$CountryCombined)),
+        #select box
+        selectInput("riInput", "Select an Inventory", choices = unique(df$RI)),
+        #radio button
+        radioButtons("YInput", label = h3("Y-axis"),
+                     c("# Species" = "NoSpecies", "# Specimen" = "NoSpecimen", "# Occurance" = "NoOccurance"), 
+                     selected = "NoSpecies"),
         #download button
         downloadButton("downloadData", "Download"),
         br(),
@@ -28,18 +34,18 @@ ui<-fluidPage(
 server<-function(input,output){
   #Reactive value for selected dataset
           datasetInput<-reactive({
-            req(input$country)
-            filter(nlp, CountryCombined %in% input$country)
+            df %>%
+              filter(RI %in% input$riInput) %>%
+              select(RI, Category, input$YInput)
            })
-  #Fill in the spot we created for a plot
+  #Fill in the spot we created for a plot--this part is in progress
            output$BarPlot <- renderPlot({
              # Render a barplot
-             ggplot(datasetInput(), aes(x=AdmPublishWebNoPassword)) + 
-               geom_bar(stat="count")+ theme_bw()+ggtitle(input$country)+
-               labs(y="Number of Records", x = "Permission")
-             
+             ggplot(datasetInput, aes(x=Category, y=input$YInput)) + 
+               geom_bar(stat="identity")+ theme_bw()+ggtitle("RESULTS")+
+               labs(y="Number of Records", x ="Category" )
            })         
-  #table of selected dataset
+  #table of selected dataset--this part works!
           output$table<- renderTable({
             datasetInput()
           })
@@ -47,13 +53,13 @@ server<-function(input,output){
           #Downloadable csv of selected dataset
           output$downloadData <- downloadHandler(
             filename = function() {
-              paste(input$country, ".csv", sep = "")
+              paste("RI_", input$riInput, "_", input$YInput, ".csv", sep = "")
             },
             content = function(file) {
               write.csv(datasetInput(), file, row.names = FALSE)
-            }
-          )
-
+            })
+          
 }
 # Run the app ----
 shinyApp(ui = ui, server = server)
+

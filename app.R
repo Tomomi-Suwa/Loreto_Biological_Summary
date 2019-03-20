@@ -16,7 +16,10 @@ ui<-fluidPage(
       radioButtons("YInput", label = h3("Y-axis"),
                    c("# Species" = "NoSpecies", "# Specimen" = "NoSpecimen", "# Occurance" = "NoOccurance"), 
                    selected = "NoSpecies"),
-      #download button
+     #slider bar
+     sliderInput("slider", label = h3("Select Y-axis Maximum Scale"), min = 0, 
+                 max = 2000, value = 15000),
+       #download button
       downloadButton("downloadData", "Download"),
       br(),
       br(),
@@ -24,7 +27,8 @@ ui<-fluidPage(
     ),
     mainPanel (
       plotOutput("BarPlot"),
-      tableOutput("table")
+      tableOutput("table"),
+      plotOutput("PieChart")
     )
   )
 )
@@ -39,17 +43,22 @@ server<-function(input,output){
       select(RI, Category, input$YInput)%>%
       as.data.frame()
   })
-
-  #Fill in the spot we created for a plot--this part is in progress
+  
+  #Bar Plot
   output$BarPlot <- renderPlot({
     # print it out to the console.
     print(datasetInput()) 
     # Render a barplot
     ggplot(datasetInput(), aes_string(x="Category", y=input$YInput)) + 
       geom_bar(stat="identity")+ theme_bw()+ggtitle(paste(input$YInput,"of Rapid Inventory",input$riInput))+
-      labs(y="Number of Records", x ="Category" )
-  })         
-  #table of selected dataset--this part works!
+      labs(y="Number of Records", x ="Category" )+coord_cartesian(ylim=c(0,input$slider))
+  }) 
+  #Pie Chart
+  output$PieChart<-renderPlot({
+    ggplot(datasetInput(), aes_string(x="Category", y=input$YInput, fill = "Category")) + 
+      geom_bar(stat="identity")+ coord_polar("y")
+  })
+  #table of selected dataset
   output$table<- renderTable({
     datasetInput()
   })

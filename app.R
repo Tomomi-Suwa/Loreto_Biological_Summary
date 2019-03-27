@@ -1,7 +1,7 @@
 library(shiny)
 library(dplyr)
 library(ggplot2)
-#test2
+
 #Prep the data (Run this section before running UI and Server section----
 df<-read.csv("data/LoretoPaperBioSummary.csv")
 
@@ -41,24 +41,25 @@ server<-function(input,output){
     df %>%
       filter(RI %in% input$riInput) %>%
       select(RI, Category, input$YInput)%>%
+      mutate(Percent = 100 * !! rlang::sym (input$YInput)/sum(!! rlang::sym (input$YInput), na.rm=TRUE ))%>%
       as.data.frame()
   })
   
-  #Bar Plot
+  #Render bar plot
   output$BarPlot <- renderPlot({
     # print it out to the console.
     print(datasetInput()) 
-    # Render a barplot
-    ggplot(datasetInput(), aes_string(x="Category", y=input$YInput)) + 
+      datasetInput() %>% ggplot(aes_string(x="Category", y=input$YInput, fill="Category")) + 
       geom_bar(stat="identity")+ theme_bw()+ggtitle(paste(input$YInput,"of Rapid Inventory",input$riInput))+
       labs(y="Number of Records", x ="Category" )+coord_cartesian(ylim=c(0,input$slider))
   }) 
-  #Pie Chart
+  #Pie Chart - broken. something is wrong with "y=input$YInput" part
   output$PieChart<-renderPlot({
-    ggplot(datasetInput(), aes_string(x="Category", y=input$YInput, fill = "Category")) + 
-      geom_bar(stat="identity")+ coord_polar("y")
+    datasetInput() %>% 
+      ggplot(aes(x="", y=Percent, fill=Category))+geom_bar(width = 1, stat = "identity")+ coord_polar("y", start=0)
   })
-  #table of selected dataset
+  
+   #table of selected dataset
   output$table<- renderTable({
     datasetInput()
   })

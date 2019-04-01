@@ -53,7 +53,7 @@ server<-function(input,output){
       geom_bar(stat="identity")+ theme_bw()+ggtitle(paste(input$YInput,"of Rapid Inventory",input$riInput))+
       labs(y="Number of Records", x ="Category" )+coord_cartesian(ylim=c(0,input$slider))
   }) 
-  #Pie Chart - broken. something is wrong with "y=input$YInput" part
+  #Pie Chart
   output$PieChart<-renderPlot({
     datasetInput() %>% 
       ggplot(aes(x="", y=Percent, fill=Category))+geom_bar(width = 1, stat = "identity")+ coord_polar("y", start=0)

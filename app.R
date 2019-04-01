@@ -27,8 +27,8 @@ ui<-fluidPage(
     ),
     mainPanel (
       plotOutput("BarPlot"),
-      tableOutput("table"),
-      plotOutput("PieChart")
+      plotOutput("PieChart"),
+      tableOutput("table")
     )
   )
 )
